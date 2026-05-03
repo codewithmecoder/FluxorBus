@@ -1,4 +1,5 @@
 ﻿using FluxorBus.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FluxorBus.Core.Execution;
 
@@ -9,8 +10,8 @@ namespace FluxorBus.Core.Execution;
 /// execution of message processing pipelines. If a cancellation token is triggered, execution may be stopped before all
 /// handlers complete.</remarks>
 /// <typeparam name="TMessage">The type of message to be processed. Must implement IMessage.</typeparam>
-/// <param name="registry">The registry containing handlers and behaviors to be executed for messages of type TMessage.</param>
-public class MessageExecutor<TMessage>(MessageHandlerRegistry<TMessage> registry) : IMessageExecutor
+/// <param name="sp">The scoped service provider used to resolve handlers and behaviors at execution time.</param>
+public class MessageExecutor<TMessage>(IServiceProvider sp) : IMessageExecutor
     where TMessage : IMessage
 {
     /// <summary>
@@ -25,8 +26,8 @@ public class MessageExecutor<TMessage>(MessageHandlerRegistry<TMessage> registry
     {
         var msg = (TMessage)message;
 
-        var handlers = registry.Handlers;
-        var behaviors = registry.Behaviors;
+        var handlers = sp.GetServices<IMessageHandler<TMessage>>().ToArray();
+        var behaviors = sp.GetServices<IPipelineBehavior<TMessage>>().ToArray();
 
         foreach (var handler in handlers)
         {

@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- NuGet metadata -->
+  <PropertyGroup>
+    <PackageId>FluxorBus</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Sokcheanith ROS</Authors>
+    <Description>
+      A fast, channel-based in-process message bus for .NET 10 with pipeline behaviors
+      (retry, circuit breaker, metrics) and DI registration.
+    </Description>
+    <PackageTags>messagebus;fluxor;messaging;pipeline;channel</PackageTags>
+    <RepositoryUrl>https://github.com/YourAccount/FluxorBus</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FluxorBus.Abstractions\FluxorBus.Abstractions.csproj" />
+    <ProjectReference Include="..\FluxorBus.Core\FluxorBus.Core.csproj" />
+    <ProjectReference Include="..\FluxorBus.DependencyInjection\FluxorBus.DependencyInjection.csproj" />
+    <ProjectReference Include="..\FluxorBus.Pipeline\FluxorBus.Pipeline.csproj" />
+  </ItemGroup>
+
+</Project>

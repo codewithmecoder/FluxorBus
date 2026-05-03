@@ -1,4 +1,5 @@
 ﻿using FluxorBus.Abstractions;
+using FluxorBus.Core;
 using FluxorBus.Core.Channel;
 using FluxorBus.Core.Execution;
 using FluxorBus.Pipeline;
@@ -19,18 +20,19 @@ public static class ServiceCollectionExtensions
     /// pipeline behaviors required for Fluxor-based messaging. It should be called during application startup to enable
     /// message-based communication and middleware behaviors such as retries, circuit breaking, and metrics.</remarks>
     /// <param name="services">The service collection to which the Fluxor bus and related services are added. Cannot be null.</param>
+    /// <param name="configure">An optional delegate to configure <see cref="FluxorBus.Core.FluxorBusOptions"/>.</param>
     /// <returns>The same service collection instance, enabling method chaining.</returns>
-    public static IServiceCollection AddFluxorBus(this IServiceCollection services)
+    public static IServiceCollection AddFluxorBus(this IServiceCollection services, Action<FluxorBusOptions>? configure = null)
     {
+        var options = new FluxorBusOptions();
+        configure?.Invoke(options);
+        services.AddSingleton(options);
         services.AddSingleton<ChannelMessageBus>();
         services.AddSingleton<IMessageBus>(sp => sp.GetRequiredService<ChannelMessageBus>());
 
-        services.AddSingleton<MessageExecutorFactory>();
-        services.AddSingleton<MessageHandlerRegistryFactory>();
-
         services.AddHostedService<MessageConsumer>();
 
-        services.AddTransient(typeof(MessageExecutor<>));
+        services.AddScoped(typeof(MessageExecutor<>));
 
         services.AddScoped(typeof(IPipelineBehavior<>), typeof(RetryBehavior<>));
         services.AddScoped(typeof(IPipelineBehavior<>), typeof(CircuitBreakerBehavior<>));

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Channels;
 using FluxorBus.Abstractions;
+using ThreadingChannel = System.Threading.Channels.Channel;
 
 namespace FluxorBus.Core.Channel;
 
@@ -11,10 +12,11 @@ namespace FluxorBus.Core.Channel;
 /// thread-safe, bounded channel. It is suitable for scenarios where messages need to be buffered and processed
 /// concurrently. The channel enforces a maximum capacity, and publishing will wait if the channel is full until space
 /// becomes available.</remarks>
-/// <param> name="capacity">The maximum number of messages that can be buffered in the channel. Default is 10,000.</param>
-public class ChannelMessageBus(int capacity = 10_000) : IMessageBus
+/// <param name="options">The global FluxorBus configuration options. The <see cref="FluxorBusOptions.Capacity"/>
+/// value controls the maximum number of messages that can be buffered in the channel.</param>
+public class ChannelMessageBus(FluxorBusOptions options) : IMessageBus
 {
-    private readonly Channel<IMessage> _channel = System.Threading.Channels.Channel.CreateBounded<IMessage>(new BoundedChannelOptions(capacity)
+    private readonly Channel<IMessage> _channel = ThreadingChannel.CreateBounded<IMessage>(new BoundedChannelOptions(options.Capacity)
     {
         FullMode = BoundedChannelFullMode.Wait
     });
@@ -32,4 +34,9 @@ public class ChannelMessageBus(int capacity = 10_000) : IMessageBus
     /// <returns></returns>
     public IAsyncEnumerable<IMessage> ReadAllAsync(CancellationToken ct)
         => _channel.Reader.ReadAllAsync(ct);
+
+    /// <summary>
+    /// Returns the underlying channel reader for low-level read operations such as <see cref="ChannelReader{T}.WaitToReadAsync"/> and <see cref="ChannelReader{T}.TryRead"/>.
+    /// </summary>
+    public ChannelReader<IMessage> GetReader() => _channel.Reader;
 }
