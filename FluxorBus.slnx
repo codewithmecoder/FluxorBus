@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/benchmark/">
+    <Project Path="benchmark/FluxorBus.Benchmark/FluxorBus.Benchmark.csproj" Id="979dfbf2-c0ee-469c-b970-5412e03add56" />
+  </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/FluxorBus.SampleApi/FluxorBus.SampleApi.csproj" Id="81a238cf-e3c2-4c9e-8471-1974ee056b7c" />
   </Folder>
