@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Items Solution/">
+    <File Path=".gitignore" />
+    <File Path="FluxorBus.sln.DotSettings" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/FluxorBus.Abstractions/FluxorBus.Abstractions.csproj" Id="8f6143bf-45f8-4911-a0b4-10e89d1cd45c" />
+  <Project Path="src/FluxorBus.Core/FluxorBus.Core.csproj" Id="bbf13088-cab3-41f1-afa7-17db004b5ced" />
+  <Project Path="src/FluxorBus.DependencyInjection/FluxorBus.DependencyInjection.csproj" Id="39484c37-657f-4990-a2ae-79bb97835208" />
+  <Project Path="src/FluxorBus.Pipeline/FluxorBus.Pipeline.csproj" Id="9f390f50-b521-44d5-a880-8b12d8599aa6" />
+  <Project Path="src/FluxorBus.SourceGen/FluxorBus.SourceGen.csproj" Id="6484788e-f442-4229-86a7-fbfaf11c163d" />
+</Solution>
