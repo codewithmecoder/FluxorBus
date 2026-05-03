@@ -18,7 +18,7 @@ builder.Host.UseSerilog((ctx, services, config) =>
 builder.Services
     .AddFluxorBus(opt =>
     {
-        opt.EnableBatchConsume = false;
+        opt.EnableBatchConsume = true;
         opt.BatchSize = 32;
         opt.BatchTimeReleased = 5000; // ms
         opt.Capacity = 10;

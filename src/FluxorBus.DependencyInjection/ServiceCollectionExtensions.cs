@@ -33,6 +33,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<MessageConsumer>();
 
         services.AddScoped(typeof(MessageExecutor<>));
+        services.AddScoped(typeof(MessageBatchExecutor<>));
 
         services.AddScoped(typeof(IPipelineBehavior<>), typeof(RetryBehavior<>));
         services.AddScoped(typeof(IPipelineBehavior<>), typeof(CircuitBreakerBehavior<>));

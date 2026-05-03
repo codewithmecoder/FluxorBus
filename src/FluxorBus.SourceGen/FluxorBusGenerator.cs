@@ -30,7 +30,7 @@ public class FluxorBusGenerator : IIncrementalGenerator
                     var cls = (ClassDeclarationSyntax)ctx.Node;
                     return ctx.SemanticModel.GetDeclaredSymbol(cls) as INamedTypeSymbol;
                 })
-            .Where(static s => s is not null)!;
+            .Where(static s => s is not null);
 
         // 2. Combine with compilation (for symbol resolution cache)
         var pipeline = context.CompilationProvider.Combine(candidates.Collect());
@@ -49,7 +49,10 @@ public class FluxorBusGenerator : IIncrementalGenerator
         var handlerInterface = compilation
             .GetTypeByMetadataName("FluxorBus.Abstractions.IMessageHandler`1");
 
-        if (handlerInterface is null)
+        var handlerBatchInterface = compilation
+            .GetTypeByMetadataName("FluxorBus.Abstractions.IMessageBatchHandler`1");
+
+        if (handlerInterface is null && handlerBatchInterface is null)
             return;
 
         var sb = new StringBuilder();
@@ -68,15 +71,24 @@ public class FluxorBusGenerator : IIncrementalGenerator
         {
             var messageHandlerInterface = FindMessageHandlerInterface(symbol, handlerInterface);
 
-            if (messageHandlerInterface is null)
-                continue;
+            if (messageHandlerInterface is not null)
+            {
+                var messageType = messageHandlerInterface.TypeArguments[0];
+                var messageTypeName = messageType.ToDisplayString();
+                var handlerTypeName = symbol.ToDisplayString();
 
-            var messageType = messageHandlerInterface.TypeArguments[0];
-            var messageTypeName = messageType.ToDisplayString();
-            var handlerTypeName = symbol.ToDisplayString();
+                sb.AppendLine(
+                    $"        services.AddScoped<IMessageHandler<{messageTypeName}>, {handlerTypeName}>();");
+            }
+
+            var messageBatchHandlerInterface = FindMessageHandlerInterface(symbol, handlerBatchInterface);
+            if (messageBatchHandlerInterface is null) continue;
+            var messageBatchType = messageBatchHandlerInterface.TypeArguments[0];
+            var messageBatchTypeName = messageBatchType.ToDisplayString();
+            var handlerBatchTypeName = symbol.ToDisplayString();
 
             sb.AppendLine(
-                $"        services.AddScoped<IMessageHandler<{messageTypeName}>, {handlerTypeName}>();");
+                $"        services.AddScoped<IMessageBatchHandler<{messageBatchTypeName}>, {handlerBatchTypeName}>();");
         }
 
         sb.AppendLine();
@@ -89,9 +101,10 @@ public class FluxorBusGenerator : IIncrementalGenerator
 
     private static INamedTypeSymbol? FindMessageHandlerInterface(
         INamedTypeSymbol symbol,
-        INamedTypeSymbol handlerInterface)
+        INamedTypeSymbol? handlerInterface)
     {
         // Avoid LINQ allocations
+        // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
         foreach (var iface in symbol.AllInterfaces)
         {
             if (SymbolEqualityComparer.Default.Equals(

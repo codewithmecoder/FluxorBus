@@ -13,6 +13,7 @@ namespace FluxorBus.Core.Channel;
 /// <remarks>This background service reads messages continuously from the provided message bus and processes them
 /// in batches to improve throughput. Each batch is processed within a new dependency injection scope. The service is
 /// intended to be hosted as part of an application's background processing infrastructure.</remarks>
+/// <param name="logger"></param>
 /// <param name="bus">The message bus from which messages are read and consumed.</param>
 /// <param name="sp">The service provider used to resolve scoped dependencies for message processing.</param>
 /// <param name="options">The global FluxorBus configuration options.</param>
@@ -24,6 +25,7 @@ public class MessageConsumer(
     : BackgroundService
 {
     private static readonly ConcurrentDictionary<Type, Type> ExecutorTypeCache = new();
+    private static readonly ConcurrentDictionary<Type, Type> BatchExecutorTypeCache = new();
 
     private const int MaxConcurrency = 10; // tune based on workload
 
@@ -96,18 +98,30 @@ public class MessageConsumer(
         using var scope = sp.CreateScope();
         var provider = scope.ServiceProvider;
 
-        using var semaphore = new SemaphoreSlim(MaxConcurrency);
+        // Separate batch messages (IMessageBatch) from regular messages
+        var batchGroups = batch
+            .OfType<IMessageBatch>()
+            .GroupBy(m => m.GetType())
+            .ToList();
 
-        var tasks = new Task[batch.Count];
+        var regularMessages = batch
+            .Where(m => m is not IMessageBatch)
+            .ToList();
 
-        for (var i = 0; i < batch.Count; i++)
+        // Dispatch regular messages concurrently, one handler call per message
+        if (regularMessages.Count > 0)
         {
-            var message = batch[i];
-
-            tasks[i] = ProcessMessage(message, provider, semaphore, ct);
+            using var semaphore = new SemaphoreSlim(MaxConcurrency);
+            // ReSharper disable once AccessToDisposedClosure
+            var tasks = regularMessages.Select(m => ProcessMessage(m, provider, semaphore, ct));
+            await Task.WhenAll(tasks);
         }
 
-        await Task.WhenAll(tasks);
+        // Dispatch each group of batch messages to their batch handlers
+        foreach (var group in batchGroups)
+        {
+            await ProcessBatch(group.Key, [.. group], provider, ct);
+        }
     }
 
     private async Task ProcessMessage(
@@ -138,6 +152,29 @@ public class MessageConsumer(
         finally
         {
             semaphore.Release();
+        }
+    }
+
+    private async Task ProcessBatch(
+        Type messageType,
+        IReadOnlyList<object> messages,
+        IServiceProvider provider,
+        CancellationToken ct)
+    {
+        try
+        {
+            var executorType = BatchExecutorTypeCache.GetOrAdd(
+                messageType,
+                static t => typeof(MessageBatchExecutor<>).MakeGenericType(t)
+            );
+
+            var executor = (IMessageBatchExecutor)provider.GetRequiredService(executorType);
+
+            await executor.Execute(messages, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Batch processing failed for {MessageType}", messageType.Name);
         }
     }
 }
