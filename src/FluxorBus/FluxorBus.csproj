@@ -1,13 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <!-- NuGet metadata -->
   <PropertyGroup>
+    <Title>FluxorBus</Title>
     <PackageId>FluxorBus</PackageId>
     <Version>1.0.0</Version>
     <Authors>Sokcheanith ROS</Authors>
@@ -16,14 +18,25 @@
       (retry, circuit breaker, metrics) and DI registration.
     </Description>
     <PackageTags>messagebus;fluxor;messaging;pipeline;channel</PackageTags>
-    <RepositoryUrl>https://github.com/YourAccount/FluxorBus</RepositoryUrl>
+    <RepositoryUrl>https://github.com/codewithmecoder/FluxorBus</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/codewithmecoder/FluxorBus</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <SignAssembly>true</SignAssembly>
+    <PackageIcon>fluxor-bus-logo.png</PackageIcon>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="fluxor-bus-logo.png" Pack="true" PackagePath="" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
