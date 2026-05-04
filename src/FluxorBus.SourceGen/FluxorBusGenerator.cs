@@ -25,10 +25,10 @@ public class FluxorBusGenerator : IIncrementalGenerator
                 predicate: static (node, _) =>
                     node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 },
 
-                transform: static (ctx, _) =>
+                transform: static (ctx, cancellationToken) =>
                 {
                     var cls = (ClassDeclarationSyntax)ctx.Node;
-                    return ctx.SemanticModel.GetDeclaredSymbol(cls) as INamedTypeSymbol;
+                    return ctx.SemanticModel.GetDeclaredSymbol(cls, cancellationToken) as INamedTypeSymbol;
                 })
             .Where(static s => s is not null);
 

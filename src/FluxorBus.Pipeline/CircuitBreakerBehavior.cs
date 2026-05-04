@@ -1,4 +1,5 @@
 ﻿using FluxorBus.Abstractions;
+using FluxorBus.Core;
 
 namespace FluxorBus.Pipeline;
 
@@ -8,10 +9,15 @@ namespace FluxorBus.Pipeline;
 /// </summary>
 /// <remarks>The circuit breaker automatically opens after a specified number of consecutive failures, temporarily
 /// blocking further message handling until reset. This helps to prevent system overload and allows dependent services
-/// time to recover. Thread safety is not guaranteed; use with care in multi-threaded scenarios.</remarks>
+/// time to recover. Thread safety is not guaranteed; use with care in multithreaded scenarios.</remarks>
 /// <typeparam name="T">The type of message handled by the pipeline behavior.</typeparam>
-public class CircuitBreakerBehavior<T> : IPipelineBehavior<T>
+/// <remarks>
+/// Initializes a new instance of <see cref="CircuitBreakerBehavior{T}"/> using the provided options.
+/// </remarks>
+/// <param name="options">The FluxorBus options containing the circuit breaker failure threshold.</param>
+public class CircuitBreakerBehavior<T>(FluxorBusOptions options) : IPipelineBehavior<T>
 {
+    private readonly int _failureThreshold = options.CircuitBreakerFailureThreshold;
     private int _failures;
     private bool _open;
 
@@ -19,9 +25,9 @@ public class CircuitBreakerBehavior<T> : IPipelineBehavior<T>
     /// Processes the specified message asynchronously, invoking the next handler in the pipeline unless the circuit is
     /// open.
     /// </summary>
-    /// <remarks>If the handler encounters more than five consecutive failures, the circuit is opened and
-    /// subsequent calls will throw an exception until the circuit is reset. This mechanism is intended to prevent
-    /// repeated processing failures.</remarks>
+    /// <remarks>If the handler encounters more than <see cref="FluxorBusOptions.CircuitBreakerFailureThreshold"/>
+    /// consecutive failures, the circuit is opened and subsequent calls will throw an exception until the circuit is
+    /// reset. This mechanism is intended to prevent repeated processing failures.</remarks>
     /// <param name="message">The message to be processed by the handler.</param>
     /// <param name="next">A delegate representing the next handler to invoke in the processing pipeline.</param>
     /// <param name="ct">A cancellation token that can be used to cancel the asynchronous operation.</param>
@@ -41,7 +47,7 @@ public class CircuitBreakerBehavior<T> : IPipelineBehavior<T>
         {
             _failures++;
 
-            if (_failures > 5)
+            if (_failures > _failureThreshold)
                 _open = true;
 
             throw;

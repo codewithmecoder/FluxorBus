@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FluxorBus.Abstractions\FluxorBus.Abstractions.csproj" />
+    <ProjectReference Include="..\FluxorBus.Core\FluxorBus.Core.csproj" />
   </ItemGroup>
 
 </Project>

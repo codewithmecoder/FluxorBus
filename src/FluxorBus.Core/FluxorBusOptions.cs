@@ -30,4 +30,25 @@ public sealed class FluxorBusOptions
     /// Defaults to <c>10000</c>.
     /// </summary>
     public int Capacity { get; set; } = 10_000;
+
+    /// <summary>
+    /// Gets or sets the number of consecutive failures after which the circuit breaker opens.
+    /// When the circuit is open, further message handling is blocked until it is reset.
+    /// Defaults to <c>5</c>.
+    /// </summary>
+    public int CircuitBreakerFailureThreshold { get; set; } = 5;
+
+    /// <summary>
+    /// Gets or sets the maximum number of retry attempts for a failing message handler.
+    /// The handler is tried once initially, then retried up to this number of additional times.
+    /// Defaults to <c>3</c>.
+    /// </summary>
+    public int RetryAttempts { get; set; } = 3;
+
+    /// <summary>
+    /// Gets or sets the base delay in milliseconds between retry attempts.
+    /// The actual delay is multiplied by the current attempt number to produce a linear back-off.
+    /// Defaults to <c>50</c> ms.
+    /// </summary>
+    public int RetryDelayMilliseconds { get; set; } = 50;
 }
